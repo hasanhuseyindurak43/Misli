@@ -17,7 +17,7 @@ class Application():
         self.driver.quit()
         print("-" * 100)
         print("Seçilen Maçlar:", self.maclar)
-        print("-" * 100)        
+        print("-" * 100)
         self.results = self.play_matches()
         self.print_combined_results()
 
@@ -368,6 +368,15 @@ class Application():
 
                     time.sleep(5)
 
+                    combination_str = " - ".join([
+                        f"{result['home_team']} - {result['away_team']} : {result['odd_name']} ({result['odd_value']})"
+                        for result in combination
+                    ])
+
+                    print("-" * 100)
+                    print(f"{i} -) {combination_str}")
+                    print("-" * 100)
+
                     # Şimdi JS fonksiyonu ile odd_name'e tıklama işlemi
                     def click_on_odd_name(name):
                         js_script = f"""
@@ -413,6 +422,9 @@ class Application():
                     li_elements = matches_system_ul.find_elements(By.TAG_NAME, "li")
                     for li in li_elements:
                         li.click()
+                        print("-" * 100)
+                        
+                        print("-" * 100)
                         time.sleep(1)  # Her tıklamadan sonra kısa bir süre bekleyin
 
                 elif self.sistem == "Hayır":
@@ -473,15 +485,6 @@ class Application():
                     pass
 
                 time.sleep(10)
-
-                combination_str = " - ".join([
-                    f"{result['home_team']} - {result['away_team']} : {result['odd_name']} ({result['odd_value']})"
-                    for result in combination
-                ])
-
-                print("-" * 100)
-                print(f"{i} -) {combination_str}")
-                print("-" * 100)
 
             # Tüm işlemler bittiğinde tarayıcıyı kapatma
             driver.quit()
