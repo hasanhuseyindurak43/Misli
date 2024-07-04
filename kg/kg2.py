@@ -54,13 +54,9 @@ class Application():
                 EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
             )
             accept_button.click()
-            print("-" * 65)
             print("Çerezleri kabul ettim.")
-            print("-" * 65)
         except Exception as e:
-            print("-" * 65)
             print(f"Çerezleri kabul ederken bir hata oluştu: {e}")
-            print("-" * 65)
 
     def scroll_to_bottom(self):
         # Sayfanın tamamen yüklenmesi için bekleyin
@@ -121,7 +117,7 @@ class Application():
                                     odds_count = int(odds_count_text)
 
                                     # Oranların +260 ve +300 arasında olup olmadığını kontrol edin
-                                    if 235 <= odds_count <= 300:
+                                    if 260 <= odds_count <= 300:
                                         match_info = {
                                             "home_team": home_team.text,
                                             "away_team": away_team.text,
@@ -129,12 +125,11 @@ class Application():
                                             "odds_count": odds_count
                                         }
                                         maclar.append(match_info)
-                                        print("-" * 100)
                                         print(f"Home Team: {home_team.text}")
                                         print(f"Away Team: {away_team.text}")
                                         print(f"Event Detail Link: {url}{href}")
                                         print(f"Odds Count: {odds_count}")
-                                        print("-" * 100)
+                                        print("-----")
                                         # İstenilen maç sayısına ulaşıldıysa döngüyü sonlandırın
                                         if len(maclar) >= self.match_count:
                                             return maclar
@@ -146,34 +141,32 @@ class Application():
         results = []
         for match in self.maclar:
             # Yeni bir tarayıcı başlat
-            driver = self.start_browser()
+            self.driver = self.start_browser()
 
             # Yeni sekme aç
-            driver.execute_script("window.open('');")
+            self.driver.execute_script("window.open('');")
             # Yeni sekmeye geç
-            driver.switch_to.window(driver.window_handles[-1])
+            self.driver.switch_to.window(self.driver.window_handles[-1])
             # Href'i aç
-            driver.get(match["href"])
+            self.driver.get(match["href"])
 
             try:
                 # Çerezleri kabul et
-                WebDriverWait(driver, 10).until(
+                WebDriverWait(self.driver, 10).until(
                     EC.presence_of_element_located((By.ID, "onetrust-consent-sdk"))
                 )
-                cookie_div = driver.find_element(By.ID, "onetrust-consent-sdk")
+                cookie_div = self.driver.find_element(By.ID, "onetrust-consent-sdk")
                 button_group = cookie_div.find_element(By.ID, "onetrust-button-group-parent")
                 accept_button = button_group.find_element(By.ID, "onetrust-accept-btn-handler")
                 accept_button.click()
 
                 # Sayfanın yüklenmesini bekle
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "marketTabItem")))
+                WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "marketTabItem")))
 
                 first_half_results = []
-                second_half_results = []
-                three_half_results = []
 
                 # 'marketTabItem' classına sahip div'i bulun
-                market_tabs = driver.find_elements(By.XPATH, "//div[contains(@class, 'marketTabItem taraf')]")
+                market_tabs = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'marketTabItem goller')]")
 
                 for tab in market_tabs:
                     # 'marketItem' classına sahip div'in içindeki 'marketTitle' classına sahip p'yi bulun
@@ -181,7 +174,8 @@ class Application():
 
                     for item in market_items:
                         market_title = item.find_element(By.CLASS_NAME, "marketTitle")
-                        if "İlk Yarı Sonucu" in market_title.text:
+
+                        if "Karşılıklı Gol" in market_title.text and "İlk Yarı" not in market_title.text:
                             # 'marketOddsContainer' classına sahip div'in içindeki 'marketOddsWrapper' div'lerini bulun
                             odds_containers = item.find_elements(By.CLASS_NAME, "marketOddsContainer")
 
@@ -204,85 +198,13 @@ class Application():
                                                                                                                   ".").strip()
                                                 odd_value = float(odd_value_text)
 
-                                                if odd_value < 3.00:
-                                                    first_half_results.append({
-                                                        "home_team": match["home_team"],
-                                                        "away_team": match["away_team"],
-                                                        "odd_name": odd_name,
-                                                        "odd_value": odd_value
-                                                    })
-                                            except Exception as e:
-                                                print(f"An error occurred: {e}")
-
-                        if "İkinci Yarı Sonucu" in market_title.text:
-                            # 'marketOddsContainer' classına sahip div'in içindeki 'marketOddsWrapper' div'lerini bulun
-                            odds_containers = item.find_elements(By.CLASS_NAME, "marketOddsContainer")
-
-                            for container in odds_containers:
-                                odds_wrappers = container.find_elements(By.CLASS_NAME, "marketOddsWrapper")
-
-                                for wrapper in odds_wrappers:
-                                    # 'marketOdds' classına sahip div'in içindeki 'oddItem' classına sahip div'leri bulun
-                                    odds = wrapper.find_elements(By.CLASS_NAME, "marketOdds")
-
-                                    for odd in odds:
-                                        odd_items = odd.find_elements(By.CLASS_NAME, "oddItem")
-
-                                        for odd_item in odd_items:
-                                            try:
-                                                odd_inside = odd_item.find_element(By.CLASS_NAME, "oddInside")
-                                                odd_name = odd_inside.find_element(By.CLASS_NAME, "oddName").text
-                                                odd_value_text = odd_inside.find_element(By.CLASS_NAME,
-                                                                                         "oddValue").text.replace(",",
-                                                                                                                  ".").strip()
-                                                odd_value = float(odd_value_text)
-
-                                                if odd_value < 3.00:
-                                                    second_half_results.append({
-                                                        "home_team": match["home_team"],
-                                                        "away_team": match["away_team"],
-                                                        "odd_name": odd_name,
-                                                        "odd_value": odd_value
-                                                    })
-                                            except Exception as e:
-                                                print(f"An error occurred: {e}")
-
-                        if "İlk Yarı / Maç Sonucu" in market_title.text:
-                            # 'marketOddsContainer' classına sahip div'in içindeki 'marketOddsWrapper' div'lerini bulun
-                            odds_containers = item.find_elements(By.CLASS_NAME, "marketOddsContainer")
-
-                            for container in odds_containers:
-                                odds_wrappers = container.find_elements(By.CLASS_NAME, "marketOddsWrapper")
-
-                                for wrapper in odds_wrappers:
-                                    # 'marketOdds' classına sahip div'in içindeki 'oddItem' classına sahip div'leri bulun
-                                    odds = wrapper.find_elements(By.CLASS_NAME, "marketOdds")
-
-                                    for odd in odds:
-                                        odd_items = odd.find_elements(By.CLASS_NAME, "oddItem")
-
-                                        for odd_item in odd_items:
-                                            try:
-                                                odd_inside = odd_item.find_element(By.CLASS_NAME, "oddInside")
-                                                odd_name_element = odd_inside.find_element(By.CLASS_NAME, "oddName")
-                                                odd_name = odd_name_element.text
-
-                                                for first_result in first_half_results:
-                                                    for second_result in second_half_results:
-                                                        sonuc = f"{first_result['odd_name']}/{second_result['odd_name']}"
-                                                        if sonuc == str(odd_name):
-                                                            odd_value_text = odd_inside.find_element(By.CLASS_NAME,
-                                                                                                     "oddValue").text.replace(
-                                                                ",", ".").strip()
-                                                            odd_value = float(odd_value_text)
-                                                            if odd_value < 10.00:
-                                                                three_half_results.append({
-                                                                    "home_team": match["home_team"],
-                                                                    "away_team": match["away_team"],
-                                                                    "odd_name": odd_name,
-                                                                    "href": match["href"],
-                                                                    "odd_value": odd_value
-                                                                })
+                                                first_half_results.append({
+                                                    "home_team": match["home_team"],
+                                                    "away_team": match["away_team"],
+                                                    "odd_name": odd_name,
+                                                    "href": match["href"],
+                                                    "odd_value": odd_value
+                                                })
                                             except Exception as e:
                                                 print(f"An error occurred: {e}")
 
@@ -290,14 +212,12 @@ class Application():
                     "home_team": match["home_team"],
                     "away_team": match["away_team"],
                     "first_half_results": first_half_results,
-                    "second_half_results": second_half_results,
-                    "three_half_results": three_half_results
                 })
 
             except Exception as e:
                 print(f"An error occurred: {e}")
             finally:
-                driver.quit()
+                self.driver.quit()
 
         return results
 
@@ -310,7 +230,7 @@ class Application():
             next_match_index = len(current_combination)
             next_match = matches[next_match_index]
 
-            for result in next_match['three_half_results']:
+            for result in next_match['first_half_results']:
                 current_combination.append(result)
                 combine(matches, current_combination, all_combinations)
                 current_combination.pop()
@@ -411,37 +331,8 @@ class Application():
 
                     # ul içindeki tüm li öğelerini bulun ve her birine tek tek tıklayın
                     li_elements = matches_system_ul.find_elements(By.TAG_NAME, "li")
-
-                    sistem_li_texts = []
-
                     for li in li_elements:
                         li.click()
-
-                        sistem = li.text
-
-                        # sMathcesCouponAmount classa sahip divin içindeki sMathcesFold classa sahip divi bulun
-                        s_matches_fold_div = driver.find_element(By.CSS_SELECTOR,
-                                                                 "div.sMathcesCouponAmount .sMathcesFold")
-
-                        # sMathcesFold classa sahip divin içindeki form-group classa sahip divi bulun
-                        form_group_div = s_matches_fold_div.find_element(By.CSS_SELECTOR, ".form-group")
-
-                        # form-group classa sahip divin içindeki sMathcesFoldInput classa sahip input'u bulun
-                        input_element = form_group_div.find_element(By.CSS_SELECTOR, ".sMathcesFoldInput")
-
-                        input_element.clear()
-
-                        # input alanına 71 sayısını gönderin
-                        input_element.send_keys(f"{self.misli}")
-
-                        makskazanc = driver.find_element(By.XPATH, '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[3]/span[2]').text
-
-                        sistem_tutar = driver.find_element(By.XPATH, '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[1]/span[2]').text
-
-                        sistem_oran = driver.find_element(By.XPATH, '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[2]/span[2]').text
-
-                        sistem_li_texts.append((sistem, makskazanc, sistem_oran, sistem_tutar))
-
                         time.sleep(1)  # Her tıklamadan sonra kısa bir süre bekleyin
 
                 elif self.sistem == "Hayır":
@@ -510,9 +401,6 @@ class Application():
 
                 print("-" * 100)
                 print(f"{i} -) {combination_str}")
-                print("-" * 100)
-                for sistem, makskazanc, sistem_oran, sistem_tutar in sistem_li_texts:
-                    print(f"Sistem: {sistem} / Maksimum Kazanç: {makskazanc} / Sistem Oran : {sistem_oran} / Sistem Tutar : {sistem_tutar}")
                 print("-" * 100)
 
             # Tüm işlemler bittiğinde tarayıcıyı kapatma
