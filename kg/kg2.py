@@ -291,11 +291,20 @@ class Application():
                     # Şimdi JS fonksiyonu ile odd_name'e tıklama işlemi
                     def click_on_odd_name(name):
                         js_script = f"""
-                            let oddNameElements = document.querySelectorAll('.marketItem .oddName');
-                            oddNameElements.forEach(function(oddNameElement) {{
-                                if (oddNameElement.textContent.trim() === '{name}') {{
-                                    oddNameElement.click();
-                                    console.log(`Clicked on {name}`);
+                            let marketItems = document.querySelectorAll('.marketItem');
+                            marketItems.forEach(function(item) {{
+                                let titleElement = item.querySelector('.marketTitle');
+                                if (titleElement) {{
+                                    let titleText = titleElement.textContent.trim();
+                                    if (titleText.includes('Karşılıklı Gol') && !titleText.includes('İlk Yarı')) {{
+                                        let oddNameElements = item.querySelectorAll('.oddName');
+                                        oddNameElements.forEach(function(oddNameElement) {{
+                                            if (oddNameElement.textContent.trim() === '{name}') {{
+                                                oddNameElement.click();
+                                                console.log(`Clicked on {name}`);
+                                            }}
+                                        }});
+                                    }}
                                 }}
                             }});
                         """
