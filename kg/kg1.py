@@ -104,7 +104,7 @@ class Application():
                                     odds_count = int(odds_count_text)
 
                                     # Oranların +260 ve +300 arasında olup olmadığını kontrol edin
-                                    if 260 <= odds_count <= 300:
+                                    if 42 <= odds_count <= 300:
                                         match_info = {
                                             "home_team": home_team.text,
                                             "away_team": away_team.text,
