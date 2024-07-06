@@ -337,6 +337,7 @@ class Application():
 
                 sistem_li_texts = []
                 mac_sayi = 0
+
                 if self.sistem == "Evet":
 
                     # headerSlipWrapper betslip-show slipPre divin içindeki headerSlipMain clasa sahip dive erişin
@@ -352,7 +353,6 @@ class Application():
 
                     # ul içindeki tüm li öğelerini bulun ve her birine tek tek tıklayın
                     li_elements = matches_system_ul.find_elements(By.TAG_NAME, "li")
-
                     for li in li_elements:
                         li.click()
 
@@ -387,7 +387,6 @@ class Application():
                         time.sleep(1)  # Her tıklamadan sonra kısa bir süre bekleyin
 
                 elif self.sistem == "Hayır":
-
                     mac_sayi += 1
                     # sMathcesCouponAmount classa sahip divin içindeki sMathcesFold classa sahip divi bulun
                     s_matches_fold_div = driver.find_element(By.CSS_SELECTOR,
@@ -408,10 +407,10 @@ class Application():
                                                      '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[3]/span[2]').text
 
                     mac_tutar = driver.find_element(By.XPATH,
-                                                       '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[1]/span[2]').text
+                                                    '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[1]/span[2]').text
 
                     mac_oran = driver.find_element(By.XPATH,
-                                                      '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[2]/span[2]').text
+                                                   '//*[@id="misli-app"]/header/div/div[2]/div/div/div/div[2]/div/div[2]/div[1]/div[2]/div[6]/div[2]/span[2]').text
 
                     sistem_li_texts.append((mac_sayi, makskazanc, mac_oran, mac_tutar))
 
@@ -483,10 +482,12 @@ class Application():
                 print("-" * 100)
                 if self.sistem == "Evet":
                     for sistem, makskazanc, sistem_oran, sistem_tutar in sistem_li_texts:
-                        print(f"Sistem: {sistem} / Maksimum Kazanç: {makskazanc} / Sistem Oran : {sistem_oran} / Sistem Tutar : {sistem_tutar}")
+                        print(
+                            f"Sistem: {sistem} / Maksimum Kazanç: {makskazanc} / Sistem Oran : {sistem_oran} / Sistem Tutar : {sistem_tutar}")
                 elif self.sistem == "Hayır":
                     for mac_sayi, makskazanc, mac_oran, mac_tutar in sistem_li_texts:
-                        print(f"Maç: {mac_sayi} / Maksimum Kazanç: {makskazanc} / Maç Oran : {mac_oran} / Maç Tutar : {mac_tutar}")
+                        print(
+                            f"Maç: {mac_sayi} / Maksimum Kazanç: {makskazanc} / Maç Oran : {mac_oran} / Maç Tutar : {mac_tutar}")
                 print("-" * 100)
 
             # Tüm işlemler bittiğinde tarayıcıyı kapatma
