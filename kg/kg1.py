@@ -85,8 +85,14 @@ class Application():
 
                     for item_row in bulletin_item_rows:
                         # 'bulletinTeamName bulletinHomeTeam' classına sahip span'ları bulun
-                        home_team = item_row.find('span', class_='bulletinTeamName bulletinHomeTeam')
-                        away_team = item_row.find('span', class_='bulletinTeamName bulletinAwayTeam')
+                        # XPath ile metni alın
+                        text = item_row.find('span', class_='bulletinTeamName bulletinHomeTeam').text
+                        
+                        # Metni '-' karakterinden böl
+                        home_team, away_team = text.split('-')
+                        
+                        home_team = home_team.strip()
+                        away_team = away_team.strip()
 
                         # 'bulletinOddsWrapper' classına sahip div'leri bulun
                         odds_wrappers = item_row.find_all('div', class_='bulletinOddsWrapper')
@@ -106,14 +112,14 @@ class Application():
                                     # Oranların +260 ve +300 arasında olup olmadığını kontrol edin
                                     if 42 <= odds_count <= 300:
                                         match_info = {
-                                            "home_team": home_team.text,
-                                            "away_team": away_team.text,
+                                            "home_team": home_team,
+                                            "away_team": away_team,
                                             "href": f"{url}{href}",
                                             "odds_count": odds_count
                                         }
                                         maclar.append(match_info)
-                                        print(f"Home Team: {home_team.text}")
-                                        print(f"Away Team: {away_team.text}")
+                                        print(f"Home Team: {home_team}")
+                                        print(f"Away Team: {away_team}")
                                         print(f"Event Detail Link: {url}{href}")
                                         print(f"Odds Count: {odds_count}")
                                         print("-----")
@@ -156,44 +162,43 @@ class Application():
                 market_tabs = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'marketTabItem goller')]")
 
                 for tab in market_tabs:
-                    # 'marketItem' classına sahip div'in içindeki 'marketTitle' classına sahip p'yi bulun
-                    market_items = tab.find_elements(By.CLASS_NAME, "marketItem")
+                    # 'marketItem' classına sahip div'in içindeki 'marketName' classına sahip p'yi bulun
+                    market_items = tab.find_elements(By.CLASS_NAME, "detail-markets-wrapper")
 
                     for item in market_items:
-                        market_title = item.find_element(By.CLASS_NAME, "marketTitle")
+                        market_title = item.find_element(By.CLASS_NAME, "market-name")
 
-                        if "Karşılıklı Gol" in market_title.text and "İlk Yarı" not in market_title.text:
-                            # 'marketOddsContainer' classına sahip div'in içindeki 'marketOddsWrapper' div'lerini bulun
-                            odds_containers = item.find_elements(By.CLASS_NAME, "marketOddsContainer")
+                        # Tam eşleşme için metni kontrol et
+                        if market_title.text.strip() == "Karşılıklı Gol":
+
+                            # 'marketOddWrapper' classına sahip div'in içindeki 'marketOdds' classına sahip div'leri bulun
+                            odds_containers = item.find_elements(By.CLASS_NAME, "market-odd-wrapper")
 
                             for container in odds_containers:
-                                odds_wrappers = container.find_elements(By.CLASS_NAME, "marketOddsWrapper")
-
+                                odds_wrappers = container.find_elements(By.CLASS_NAME, "marketOdds")
+                                
                                 for wrapper in odds_wrappers:
-                                    # 'marketOdds' classına sahip div'in içindeki 'oddItem' classına sahip div'leri bulun
-                                    odds = wrapper.find_elements(By.CLASS_NAME, "marketOdds")
+                                    odd_items = wrapper.find_elements(By.CLASS_NAME, "oddItem")
 
-                                    for odd in odds:
-                                        odd_items = odd.find_elements(By.CLASS_NAME, "oddItem")
+                                    for odd_item in odd_items:
+                                        try:
+                                            odd_inside = odd_item.find_element(By.CLASS_NAME, "oddInside")
+                                            odd_name_span = odd_inside.find_element(By.CLASS_NAME, "oddName")
+                                            odd_value_span = odd_inside.find_element(By.CLASS_NAME, "oddValue")
 
-                                        for odd_item in odd_items:
-                                            try:
-                                                odd_inside = odd_item.find_element(By.CLASS_NAME, "oddInside")
-                                                odd_name = odd_inside.find_element(By.CLASS_NAME, "oddName").text
-                                                odd_value_text = odd_inside.find_element(By.CLASS_NAME,
-                                                                                         "oddValue").text.replace(",",
-                                                                                                                  ".").strip()
-                                                odd_value = float(odd_value_text)
+                                            odd_name = odd_name_span.text
+                                            odd_value_text = odd_value_span.text.replace(",", ".").strip()
+                                            odd_value = float(odd_value_text)
 
-                                                first_half_results.append({
-                                                    "home_team": match["home_team"],
-                                                    "away_team": match["away_team"],
-                                                    "odd_name": odd_name,
-                                                    "href": match["href"],
-                                                    "odd_value": odd_value
-                                                })
-                                            except Exception as e:
-                                                print(f"An error occurred: {e}")
+                                            first_half_results.append({
+                                                "home_team": match["home_team"],
+                                                "away_team": match["away_team"],
+                                                "odd_name": odd_name,
+                                                "href": match["href"],
+                                                "odd_value": odd_value
+                                            })
+                                        except Exception as e:
+                                            print(f"An error occurred: {e}")
 
                 results.append({
                     "home_team": match["home_team"],
